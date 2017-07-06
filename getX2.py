@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import tempfile
+import csv
 
 
 '''Retrieve Patent ID as a string'''
@@ -101,6 +102,13 @@ def main():
     arr.append(lArr)
 
     print (arr)
+
+    #write results to the csv file
+    length = len(arr[0])
+    file_writer = csv.writer(open('all.csv', 'w', newline=''))
+    for y in range(length):
+        file_writer.writerow([x[y] for x in arr])
+    print ("Finished.")
 
 
 # call main method
