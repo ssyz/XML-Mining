@@ -17,7 +17,13 @@ def getInv(root):
     invs = ""
     last = ""
     first = ""
-    for i in root[0][12][0]:
+
+    rootLoc = root[0][12]
+    if rootLoc.tag != "parties":
+        rootLoc = root[0][13]
+
+    for i in rootLoc[0]:
+        print (rootLoc)
         if i.attrib['app-type'] == "applicant-inventor":
             last = i[0][0].text
             first = i[0][1].text
@@ -42,14 +48,19 @@ def getCit(root):
             #document number
             dN = c[0][0][1].text
             #names
-            nN = c[0][0][3].text
+            nN = ""
+            try:
+                nN = c[0][0][3].text
+            except:
+                nN = "NO NAME"
+
             cits += num + " (" + dN + ") " + nN + "; "
     return "{" + cits + "}"
 
 
 '''main method'''
 def main():
-    f = open("ex2.xml")
+    f = open("ipgb20090106.xml")
     xml = ""
 
     '''Find the start of each XML file'''
@@ -79,6 +90,7 @@ def main():
         try:
                #data = '\n'.join(lines[:indexes[1]])
                data = '\n'.join(lines[indexes[j]:indexes[k]])
+               print (indexes[j])
                #data = '\n'.join(lines[indexes[2]:])
                temp.write(data.encode('utf-8'))
                temp.seek(0)
@@ -91,6 +103,7 @@ def main():
                root = ET.fromstring(ptS)
                miniArr = [getID(root), str(root.attrib), getTit(root), getInv(root), getCit(root)]
                arr.append(miniArr)
+               print (arr)
         finally:
                temp.close()
 
@@ -100,8 +113,6 @@ def main():
     lastRoot = ET.fromstring(last)
     lArr = [getID(lastRoot), str(lastRoot.attrib), getTit(lastRoot), getInv(lastRoot), getCit(lastRoot)]
     arr.append(lArr)
-
-    print (arr)
 
     #write results to the csv file
     length = len(arr[0])
