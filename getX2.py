@@ -18,12 +18,14 @@ def getInv(root):
     last = ""
     first = ""
 
-    rootLoc = root[0][12]
-    if rootLoc.tag != "parties":
-        rootLoc = root[0][13]
+    rootLoc = root
+    for ind in root[0]:
+        if ind.tag == "parties":
+            rootLoc = ind
+            break
 
     for i in rootLoc[0]:
-        print (rootLoc)
+        #print (rootLoc)
         if i.attrib['app-type'] == "applicant-inventor":
             last = i[0][0].text
             first = i[0][1].text
@@ -34,27 +36,40 @@ def getInv(root):
 # what is nplcit???
 def getCit(root):
     cits = ""
-    for c in root[0][7]:
-        if c[0].tag == 'nplcit':
-            num = c[0].attrib['num']
-            dN = c[1].text
-            #long, so omitted
-            #nN = c[0][0].text
-            nN = "nplcit"
-            cits += num + " (" + dN + ") " + nN + "; "
-        else:
-            #pacit num
-            num = c[0].attrib['num']
-            #document number
-            dN = c[0][0][1].text
-            #names
-            nN = ""
-            try:
-                nN = c[0][0][3].text
-            except:
-                nN = "NO NAME"
 
-            cits += num + " (" + dN + ") " + nN + "; "
+    found = False
+    cR = root
+    for ind in root[0]:
+        if ind.tag == "references-cited":
+            cR = ind
+            found = True
+            break
+
+    if found:
+        for c in cR:
+            if c[0].tag == 'nplcit':
+                num = c[0].attrib['num']
+                dN = c[1].text
+                #long, so omitted
+                #nN = c[0][0].text
+                nN = "nplcit"
+                cits += num + " (" + dN + ") " + nN + "; "
+            else:
+                #pacit num
+                num = c[0].attrib['num']
+                #document number
+                dN = c[0][0][1].text
+                #names
+                nN = ""
+                try:
+                    nN = c[0][0][3].text
+                except:
+                    nN = "NO NAME"
+
+                cits += num + " (" + dN + ") " + nN + "; "
+    else:
+        cits = "NO CITATIONS"
+
     return "{" + cits + "}"
 
 
@@ -78,11 +93,14 @@ def main():
     fArr = [getID(firstRoot), str(firstRoot.attrib), getTit(firstRoot), getInv(firstRoot), getCit(firstRoot)]
     arr.append(fArr)
 
+    counter = 1
     j = 0
     k = 1
     while j+2 < len(indexes):
         j += 1
         k += 1
+        print (counter)
+        counter += 1
         #print (indexes[j],indexes[k])
         #temporary file
         #print ('creating a temporary file #' + str(k) + '...')
@@ -90,20 +108,20 @@ def main():
         try:
                #data = '\n'.join(lines[:indexes[1]])
                data = '\n'.join(lines[indexes[j]:indexes[k]])
-               print (indexes[j])
+               #print (indexes[j])
                #data = '\n'.join(lines[indexes[2]:])
                temp.write(data.encode('utf-8'))
                temp.seek(0)
                #byte file
                pt = temp.read()
                #string file
-               ptS = pt.decode()
+               ptS = pt.decode("utf-8")
                #TODO: process temporary file
                #print (ptS)
                root = ET.fromstring(ptS)
                miniArr = [getID(root), str(root.attrib), getTit(root), getInv(root), getCit(root)]
                arr.append(miniArr)
-               print (arr)
+               #print (arr)
         finally:
                temp.close()
 
@@ -114,9 +132,9 @@ def main():
     lArr = [getID(lastRoot), str(lastRoot.attrib), getTit(lastRoot), getInv(lastRoot), getCit(lastRoot)]
     arr.append(lArr)
 
-    #write results to the csv file
+    #write results to the csv file -- 3460 files
     length = len(arr[0])
-    file_writer = csv.writer(open('all.csv', 'w', newline=''))
+    file_writer = csv.writer(open('all.csv', 'w', newline='', encoding='utf-8'))
     for y in range(length):
         file_writer.writerow([x[y] for x in arr])
     print ("Finished.")
